@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <html>
-<head><title>Queue Test</title></head>
+
+<head>
+  <title>Queue Test</title>
+</head>
+
 <body>
   <h1>Queue Socket Test</h1>
   <button id="join">Join Queue</button>
@@ -13,7 +17,7 @@
     };
 
     const socket = io("http://localhost:3001/queue", { transports: ["websocket"] });
-    socket.on("connect", ()  => log(`✔️ Connected as ${socket.id}`));
+    socket.on("connect", () => log(`✔️ Connected as ${socket.id}`));
     socket.on("queueUpdate", data => log(`↔️ queueUpdate ${JSON.stringify(data)}`));
     socket.on("matched", ({ roomId, peer }) =>
       log(`🤝 matched! roomId=${roomId}, peer=${peer}`)
@@ -25,5 +29,5 @@
     };
   </script>
 </body>
+
 </html>
-     
