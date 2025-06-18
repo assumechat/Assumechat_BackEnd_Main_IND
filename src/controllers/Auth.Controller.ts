@@ -45,7 +45,16 @@ const signup: RequestHandler = async (req, res, next) => {
         await verifyOtp(email, code);
 
         const hash = await bcrypt.hash(password, 10);
-        const user = await UserModel.create({ email, password: hash, name, emailVerified: true });
+        const user = await UserModel.create({
+            email,
+            password: hash,
+            name,
+            emailVerified: true,
+            isPremium: false,
+            dailySkips: 5,
+            lastSkipTimestamp: null,
+            // premiumExpiry: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // optional trial
+        });
         if (!user) {
             return sendError(res, "Error While Creating User Pls Try Again", 501);
         }
@@ -58,7 +67,20 @@ const signup: RequestHandler = async (req, res, next) => {
         const userWithoutPassword = user.toObject();
         delete (userWithoutPassword as { password?: string }).password;
 
-        return sendSuccess(res, { user: userWithoutPassword, accessToken, refreshToken }, 'Signin Successful', 201);
+        return sendSuccess(
+            res,
+            {
+                user: {
+                    _id: userWithoutPassword._id,
+                    name: userWithoutPassword.name,
+                    email: userWithoutPassword.email,
+                    isPremium: userWithoutPassword.isPremium,
+                    premiumExpiry: userWithoutPassword.premiumExpiry,
+                    dailySkips: userWithoutPassword.dailySkips,
+                    lastSkipTimestamp: userWithoutPassword.lastSkipTimestamp,
+                }
+            },
+            'Signin Successful', 201);
     } catch (err: any) {
         console.log("error", err);
         return sendError(res, err.message || 'Signup failed', 400, err);
@@ -88,7 +110,19 @@ const login: RequestHandler = async (req, res, next) => {
         const Cleaneduser = user.toObject();
         delete (Cleaneduser as { password?: string }).password;
         delete (Cleaneduser as { refreshTokens?: Array<any> }).refreshTokens;
-        return sendSuccess(res, { accessToken, refreshToken, user: Cleaneduser }, 'Login successful', 200);
+        return sendSuccess(res, {
+            accessToken,
+            refreshToken,
+            user: {
+                _id: Cleaneduser._id,
+                name: Cleaneduser.name,
+                email: Cleaneduser.email,
+                isPremium: Cleaneduser.isPremium,
+                premiumExpiry: Cleaneduser.premiumExpiry,
+                dailySkips: Cleaneduser.dailySkips,
+                lastSkipTimestamp: Cleaneduser.lastSkipTimestamp,
+            }
+        }, 'Login successful', 200);
     } catch (err: any) {
         return sendError(res, err.message, 500, err);
     }
@@ -118,7 +152,19 @@ const refreshTokenHandler: RequestHandler = async (req, res, next) => {
         const Cleaneduser = user.toObject();
         delete (Cleaneduser as { password?: string }).password;
         delete (Cleaneduser as { refreshTokens?: Array<any> }).refreshTokens;
-        return sendSuccess(res, { accessToken: newAccessToken, refreshToken: newRefreshToken, user: Cleaneduser }, 'Token refreshed', 200);
+        return sendSuccess(res, {
+            accessToken: newAccessToken,
+            refreshToken: newRefreshToken,
+            user: {
+                _id: Cleaneduser._id,
+                name: Cleaneduser.name,
+                email: Cleaneduser.email,
+                isPremium: Cleaneduser.isPremium,
+                premiumExpiry: Cleaneduser.premiumExpiry,
+                dailySkips: Cleaneduser.dailySkips,
+                lastSkipTimestamp: Cleaneduser.lastSkipTimestamp,
+            }
+        }, 'Token refreshed', 200);
     } catch (err: any) {
         return sendError(res, 'Could not refresh token', 403, err);
     }
