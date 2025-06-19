@@ -1,6 +1,7 @@
 import { NextFunction, Request, RequestHandler, Response } from "express";
 import EarlyAccessFormModel from "../models/EarlyAccessForm.Model";
 import { sendError, sendSuccess } from "../utils/apiResponse";
+import { IIT_EMAIL_DOMAINS, IIT_EMAIL_MAP } from "../common/iit_email.common";
 
 //check if the user already exists it returns a boolean
 async function checkEmail(email: string): Promise<boolean> {
@@ -11,30 +12,7 @@ async function checkEmail(email: string): Promise<boolean> {
   return true;
 }
 //all the iit email domains
-const IIT_EMAIL_DOMAINS = [
-  "iitb.ac.in", // IIT Bombay
-  "iitd.ac.in", // IIT Delhi
-  "iitk.ac.in", // IIT Kanpur
-  "iitm.ac.in", // IIT Madras
-  "iitkgp.ac.in", // IIT Kharagpur
-  "iitr.ac.in", // IIT Roorkee
-  "iitg.ac.in", // IIT Guwahati
-  "iith.ac.in", // IIT Hyderabad
-  "iitbbs.ac.in", // IIT Bhubaneswar
-  "iitgn.ac.in", // IIT Gandhinagar
-  "iitj.ac.in", // IIT Jodhpur
-  "iitp.ac.in", // IIT Patna
-  "iitrpr.ac.in", // IIT Ropar
-  "iiti.ac.in", // IIT Indore
-  "iitmandi.ac.in", // IIT Mandi
-  "iitism.ac.in", // IIT (ISM) Dhanbad
-  "iitpkd.ac.in", // IIT Palakkad
-  "iittp.ac.in", // IIT Tirupati
-  "iitbhilai.ac.in", // IIT Bhilai
-  "iitgoa.ac.in", // IIT Goa
-  "iitjammu.ac.in", // IIT Jammu
-  "iitdh.ac.in", // IIT Dharwad
-];
+
 //check if the email for early acess is iit email or not
 function isIITEmail(email: string): boolean {
   const domain = email.split("@")[1]?.toLowerCase();
@@ -43,31 +21,6 @@ function isIITEmail(email: string): boolean {
 
 function whichIIT(email: string): string | null {
   const domain = email.split("@")[1]?.toLowerCase();
-
-  const IIT_EMAIL_MAP: Record<string, string> = {
-    "iitb.ac.in": "IIT Bombay",
-    "iitd.ac.in": "IIT Delhi",
-    "iitk.ac.in": "IIT Kanpur",
-    "iitm.ac.in": "IIT Madras",
-    "iitkgp.ac.in": "IIT Kharagpur",
-    "iitr.ac.in": "IIT Roorkee",
-    "iitg.ac.in": "IIT Guwahati",
-    "iith.ac.in": "IIT Hyderabad",
-    "iitbbs.ac.in": "IIT Bhubaneswar",
-    "iitgn.ac.in": "IIT Gandhinagar",
-    "iitj.ac.in": "IIT Jodhpur",
-    "iitp.ac.in": "IIT Patna",
-    "iitrpr.ac.in": "IIT Ropar",
-    "iiti.ac.in": "IIT Indore",
-    "iitmandi.ac.in": "IIT Mandi",
-    "iitism.ac.in": "IIT (ISM) Dhanbad",
-    "iitpkd.ac.in": "IIT Palakkad",
-    "iittp.ac.in": "IIT Tirupati",
-    "iitbhilai.ac.in": "IIT Bhilai",
-    "iitgoa.ac.in": "IIT Goa",
-    "iitjammu.ac.in": "IIT Jammu",
-    "iitdh.ac.in": "IIT Dharwad",
-  };
 
   return domain && IIT_EMAIL_MAP[domain] ? IIT_EMAIL_MAP[domain] : null;
 }

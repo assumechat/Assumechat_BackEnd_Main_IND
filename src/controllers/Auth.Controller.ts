@@ -9,31 +9,8 @@ import {
   signRefreshToken,
   verifyRefreshToken,
 } from "../utils/jwt";
+import { IIT_EMAIL_DOMAINS } from "../common/iit_email.common";
 
-const IIT_EMAIL_DOMAINS = [
-  "iitb.ac.in", // IIT Bombay
-  "iitd.ac.in", // IIT Delhi
-  "iitk.ac.in", // IIT Kanpur
-  "iitm.ac.in", // IIT Madras
-  "iitkgp.ac.in", // IIT Kharagpur
-  "iitr.ac.in", // IIT Roorkee
-  "iitg.ac.in", // IIT Guwahati
-  "iith.ac.in", // IIT Hyderabad
-  "iitbbs.ac.in", // IIT Bhubaneswar
-  "iitgn.ac.in", // IIT Gandhinagar
-  "iitj.ac.in", // IIT Jodhpur
-  "iitp.ac.in", // IIT Patna
-  "iitrpr.ac.in", // IIT Ropar
-  "iiti.ac.in", // IIT Indore
-  "iitmandi.ac.in", // IIT Mandi
-  "iitism.ac.in", // IIT (ISM) Dhanbad
-  "iitpkd.ac.in", // IIT Palakkad
-  "iittp.ac.in", // IIT Tirupati
-  "iitbhilai.ac.in", // IIT Bhilai
-  "iitgoa.ac.in", // IIT Goa
-  "iitjammu.ac.in", // IIT Jammu
-  "iitdh.ac.in", // IIT Dharwad
-];
 function isIITEmail(email: string): boolean {
   const domain = email.split("@")[1]?.toLowerCase();
   return IIT_EMAIL_DOMAINS.includes(domain);
@@ -44,7 +21,7 @@ const requestOtp: RequestHandler = async (req, res, next) => {
   try {
     const { email } = req.body;
     if (!email) return sendError(res, "Pls Provide Email To Send Email", 401);
-    if (!isIITEmailRegex(email) || !isIITEmail(email)) {
+    if (!isIITEmail(email)) {
       return sendError(
         res,
         "Signup is restricted to users with a valid IIT email address.",
@@ -75,7 +52,7 @@ const signup: RequestHandler = async (req, res, next) => {
     const { email, code, password, name } = req.body;
     const missingFields = [];
     if (!email) missingFields.push("email");
-    if (!isIITEmailRegex(email) || !isIITEmail(email)) {
+    if (!isIITEmail(email)) {
       return sendError(
         res,
         "Signup is restricted to users with a valid IIT email address.",
@@ -139,12 +116,7 @@ const signup: RequestHandler = async (req, res, next) => {
     return sendError(res, err.message || "Signup failed", 400, err);
   }
 };
-// to check if the email contains "iit" suffix
-const IIT_REGEX = /^[a-zA-Z0-9._%+-]+@iit[a-z]*\.ac\.in$/;
 
-function isIITEmailRegex(email: string): boolean {
-  return IIT_REGEX.test(email);
-}
 // 1. Login route (email + password)
 const login: RequestHandler = async (req, res, next) => {
   const { email, password } = req.body;
@@ -152,7 +124,7 @@ const login: RequestHandler = async (req, res, next) => {
     if (!email || !password) {
       sendError(res, "Pls Provide Email Or Password", 401);
     }
-    if (!isIITEmailRegex(email) || !isIITEmail(email)) {
+    if (!isIITEmail(email)) {
       return sendError(
         res,
         "Login is restricted to users with a valid IIT email address.",
