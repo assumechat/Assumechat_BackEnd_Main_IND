@@ -44,8 +44,12 @@ const requestOtp: RequestHandler = async (req, res, next) => {
   try {
     const { email } = req.body;
     if (!email) return sendError(res, "Pls Provide Email To Send Email", 401);
-    if (!isIITEmail(email)) {
-      return sendError(res, "Only IIT emails are allowed", 403);
+    if (!isIITEmailRegex(email) || !isIITEmail(email)) {
+      return sendError(
+        res,
+        "Signup is restricted to users with a valid IIT email address.",
+        403
+      );
     }
     await generateAndSendOtp(email);
     return sendSuccess(res, null, "OTP sent to email", 200);
@@ -74,7 +78,7 @@ const signup: RequestHandler = async (req, res, next) => {
     if (!isIITEmailRegex(email) || !isIITEmail(email)) {
       return sendError(
         res,
-        "Signup is restricted to users with a valid IIT institution email address.",
+        "Signup is restricted to users with a valid IIT email address.",
         403
       );
     }
@@ -151,7 +155,7 @@ const login: RequestHandler = async (req, res, next) => {
     if (!isIITEmailRegex(email) || !isIITEmail(email)) {
       return sendError(
         res,
-        "Login is restricted to users with a valid IIT institution email address.",
+        "Login is restricted to users with a valid IIT email address.",
         403
       );
     }
