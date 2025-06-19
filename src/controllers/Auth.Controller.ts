@@ -99,30 +99,45 @@ const login: RequestHandler = async (req, res, next) => {
         const match = await bcrypt.compare(password, user.password);
         if (!match) return sendError(res, 'Invalid credentials Wrong Password', 401);
 
+        // NEW: reject if already logged in elsewhere
+        if (user.activeSession) {
+            return sendError(
+                res,
+                'You are already logged in on another device. Log out there first.',
+                409
+            );
+        }
+
         const payload = { userId: (user._id as Types.ObjectId).toString(), email: user.email };
         const accessToken = signAccessToken(payload);
         const refreshToken = signRefreshToken(payload);
 
-        // save refresh token
-        user.refreshTokens.push(refreshToken);
+        // NEW: set this as the only valid session
+        user.refreshTokens = [refreshToken];
+        user.activeSession = refreshToken;
         await user.save();
 
-        const Cleaneduser = user.toObject();
-        delete (Cleaneduser as { password?: string }).password;
-        delete (Cleaneduser as { refreshTokens?: Array<any> }).refreshTokens;
-        return sendSuccess(res, {
-            accessToken,
-            refreshToken,
-            user: {
-                _id: Cleaneduser._id,
-                name: Cleaneduser.name,
-                email: Cleaneduser.email,
-                isPremium: Cleaneduser.isPremium,
-                premiumExpiry: Cleaneduser.premiumExpiry,
-                dailySkips: Cleaneduser.dailySkips,
-                lastSkipTimestamp: Cleaneduser.lastSkipTimestamp,
-            }
-        }, 'Login successful', 200);
+        const safeUser = user.toObject();
+        delete (safeUser as { password?: string }).password;
+        delete (safeUser as { refreshTokens?: Array<any> }).refreshTokens;
+        return sendSuccess(
+            res,
+            {
+                accessToken,
+                refreshToken,
+                user: {
+                    _id: safeUser._id,
+                    name: safeUser.name,
+                    email: safeUser.email,
+                    isPremium: safeUser.isPremium,
+                    premiumExpiry: safeUser.premiumExpiry,
+                    dailySkips: safeUser.dailySkips,
+                    lastSkipTimestamp: safeUser.lastSkipTimestamp,
+                }
+            },
+            'Login successful',
+            200
+        );
     } catch (err: any) {
         return sendError(res, err.message, 500, err);
     }
@@ -130,65 +145,85 @@ const login: RequestHandler = async (req, res, next) => {
 
 
 // 2. Refresh access token
-const refreshTokenHandler: RequestHandler = async (req, res, next) => {
+const refreshTokenHandler: RequestHandler = async (req, res) => {
     const { refreshToken } = req.body;
+    if (!refreshToken)
+        return sendError(res, 'Refresh token required', 400);
+
+    let payload;
     try {
-        if (!refreshToken) return sendError(res, 'Refresh token required', 400);
-        const payload = verifyRefreshToken(refreshToken);
+        payload = verifyRefreshToken(refreshToken);
+    } catch {
+        return sendError(res, 'Invalid refresh token', 403);
+    }
 
-        // find user and check token
-        const user = await UserModel.findById(payload.userId);
-        if (!user || !user.refreshTokens.includes(refreshToken)) {
-            return sendError(res, 'Invalid refresh token', 403);
-        }
+    const user = await UserModel.findById(payload.userId);
+    if (!user || user.activeSession !== refreshToken) {
+        return sendError(res, 'Session expired or invalid', 403);
+    }
 
-        // optionally rotate tokens
-        user.refreshTokens = user.refreshTokens.filter(rt => rt !== refreshToken);
-        const newRefreshToken = signRefreshToken({ userId: payload.userId, email: payload.email });
-        user.refreshTokens.push(newRefreshToken);
-        await user.save();
+    // Rotate tokens
+    const newRefreshToken = signRefreshToken({
+        userId: payload.userId,
+        email: payload.email,
+    });
+    const newAccessToken = signAccessToken({
+        userId: payload.userId,
+        email: payload.email,
+    });
 
-        const newAccessToken = signAccessToken({ userId: payload.userId, email: payload.email });
-        const Cleaneduser = user.toObject();
-        delete (Cleaneduser as { password?: string }).password;
-        delete (Cleaneduser as { refreshTokens?: Array<any> }).refreshTokens;
-        return sendSuccess(res, {
+    user.refreshTokens = [newRefreshToken];
+    user.activeSession = newRefreshToken;
+    await user.save();
+
+    const safeUser = user.toObject();
+    delete (safeUser as { password?: string }).password;
+    delete (safeUser as { refreshTokens?: Array<any> }).refreshTokens;
+
+    return sendSuccess(
+        res,
+        {
             accessToken: newAccessToken,
             refreshToken: newRefreshToken,
             user: {
-                _id: Cleaneduser._id,
-                name: Cleaneduser.name,
-                email: Cleaneduser.email,
-                isPremium: Cleaneduser.isPremium,
-                premiumExpiry: Cleaneduser.premiumExpiry,
-                dailySkips: Cleaneduser.dailySkips,
-                lastSkipTimestamp: Cleaneduser.lastSkipTimestamp,
+                _id: safeUser._id,
+                name: safeUser.name,
+                email: safeUser.email,
+                isPremium: safeUser.isPremium,
+                premiumExpiry: safeUser.premiumExpiry,
+                dailySkips: safeUser.dailySkips,
+                lastSkipTimestamp: safeUser.lastSkipTimestamp,
             }
-        }, 'Token refreshed', 200);
-    } catch (err: any) {
-        return sendError(res, 'Could not refresh token', 403, err);
-    }
+        },
+        'Token refreshed',
+        200
+    );
 };
 
 // 3. Logout route
-const logout: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
+const logout: RequestHandler = async (req, res) => {
     const { refreshToken } = req.body;
+    if (!refreshToken)
+        return sendError(res, 'Refresh token required', 400);
+
+    let payload;
     try {
-        if (!refreshToken) return sendError(res, 'Refresh token required', 400);
-        const payload = verifyRefreshToken(refreshToken);
-        const user = await UserModel.findById(payload.userId);
-        if (!user) return sendError(res, 'Invalid refresh token', 403);
-
-        // remove this refresh token
-        user.refreshTokens = user.refreshTokens.filter(rt => rt !== refreshToken);
-        await user.save();
-
-        return sendSuccess(res, null, 'Logged out successfully', 200);
-    } catch (err: any) {
-        return sendError(res, 'Logout failed', 500, err);
+        payload = verifyRefreshToken(refreshToken);
+    } catch {
+        return sendError(res, 'Invalid refresh token', 403);
     }
-};
 
+    const user = await UserModel.findById(payload.userId);
+    if (!user)
+        return sendError(res, 'Invalid refresh token', 403);
+
+    // NEW: remove session
+    user.refreshTokens = [];
+    user.activeSession = null;
+    await user.save();
+
+    return sendSuccess(res, null, 'Logged out successfully', 200);
+};
 
 //4.Email varification
 const checkEmailExists: RequestHandler = async (req, res, next) => {
