@@ -40,6 +40,38 @@ function isIITEmail(email: string): boolean {
   const domain = email.split("@")[1]?.toLowerCase();
   return IIT_EMAIL_DOMAINS.includes(domain);
 }
+
+function whichIIT(email: string): string | null {
+  const domain = email.split("@")[1]?.toLowerCase();
+
+  const IIT_EMAIL_MAP: Record<string, string> = {
+    "iitb.ac.in": "IIT Bombay",
+    "iitd.ac.in": "IIT Delhi",
+    "iitk.ac.in": "IIT Kanpur",
+    "iitm.ac.in": "IIT Madras",
+    "iitkgp.ac.in": "IIT Kharagpur",
+    "iitr.ac.in": "IIT Roorkee",
+    "iitg.ac.in": "IIT Guwahati",
+    "iith.ac.in": "IIT Hyderabad",
+    "iitbbs.ac.in": "IIT Bhubaneswar",
+    "iitgn.ac.in": "IIT Gandhinagar",
+    "iitj.ac.in": "IIT Jodhpur",
+    "iitp.ac.in": "IIT Patna",
+    "iitrpr.ac.in": "IIT Ropar",
+    "iiti.ac.in": "IIT Indore",
+    "iitmandi.ac.in": "IIT Mandi",
+    "iitism.ac.in": "IIT (ISM) Dhanbad",
+    "iitpkd.ac.in": "IIT Palakkad",
+    "iittp.ac.in": "IIT Tirupati",
+    "iitbhilai.ac.in": "IIT Bhilai",
+    "iitgoa.ac.in": "IIT Goa",
+    "iitjammu.ac.in": "IIT Jammu",
+    "iitdh.ac.in": "IIT Dharwad",
+  };
+
+  return domain && IIT_EMAIL_MAP[domain] ? IIT_EMAIL_MAP[domain] : null;
+}
+
 //post early access form
 export const PostForm: RequestHandler<{ id: string }> = async (
   req,
@@ -47,7 +79,7 @@ export const PostForm: RequestHandler<{ id: string }> = async (
   next
 ) => {
   try {
-    const { email, name, whichIIT } = req.body;
+    const { email, name } = req.body;
     if (!email || !name || !whichIIT) {
       return sendError(res, "Please provide all the required fields", 401);
     }
@@ -63,6 +95,7 @@ export const PostForm: RequestHandler<{ id: string }> = async (
         400
       );
     }
+
     if (!isIITEmail(email)) {
       return sendError(
         res,
@@ -70,10 +103,11 @@ export const PostForm: RequestHandler<{ id: string }> = async (
         401
       );
     }
+    const whichiit = whichIIT(email);
     const newUser = await EarlyAccessFormModel.create({
       email,
       name,
-      whichIIT,
+      whichIIT: whichiit,
     });
     return sendSuccess(res, newUser, "Form submitted successfully", 200);
   } catch (e: any) {
@@ -94,5 +128,18 @@ export const GetAllForms: RequestHandler<{ id: string }> = async (
     return sendSuccess(res, forms, "got all the forms", 200);
   } catch (error: any) {
     return sendError(res, error.message || "Something went wrong", 500, error);
+  }
+};
+export const getNumForms: RequestHandler<{ id: string }> = async (
+  req,
+  res,
+  next
+) => {
+  try {
+    const number = await EarlyAccessFormModel.countDocuments({});
+
+    return sendSuccess(res, number, "got Number of applications", 200);
+  } catch (error: any) {
+    return sendError(res, error.message || "Something went wrong", 500);
   }
 };
