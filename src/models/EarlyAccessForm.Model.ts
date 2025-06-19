@@ -18,6 +18,10 @@ const EarlyAccessFormSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    claimed: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );

@@ -80,7 +80,7 @@ export const PostForm: RequestHandler<{ id: string }> = async (
 ) => {
   try {
     const { email, name } = req.body;
-    if (!email || !name || !whichIIT) {
+    if (!email || !name) {
       return sendError(res, "Please provide all the required fields", 401);
     }
     const checkUser = await checkEmail(email);
@@ -141,5 +141,48 @@ export const getNumForms: RequestHandler<{ id: string }> = async (
     return sendSuccess(res, number, "got Number of applications", 200);
   } catch (error: any) {
     return sendError(res, error.message || "Something went wrong", 500);
+  }
+};
+export const getUserByEmail: RequestHandler<{ id: string }> = async (
+  req,
+  res,
+  next
+) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return sendError(res, "Please provide all the required fields", 400);
+    }
+    const user = await EarlyAccessFormModel.findOne({ email: email });
+
+    if (!user) {
+      return sendError(res, "user not found", 404);
+    }
+    return sendSuccess(res, user, "user found", 200);
+  } catch (error: any) {
+    return sendError(res, error.message || "Something went wrong", 500, error);
+  }
+};
+export const accessClaimed: RequestHandler<{ id: string }> = async (
+  req,
+  res,
+  next
+) => {
+  try {
+    const { id } = req.body;
+    if (!id) {
+      return sendError(res, "Please provide all the required fields", 400);
+    }
+    const update = await EarlyAccessFormModel.findByIdAndUpdate(
+      { _id: id },
+      { claimed: true }
+    );
+    if (!update) {
+      return sendError(res, "Error updating", 404);
+    }
+    const user = await EarlyAccessFormModel.findOne({ _id: id });
+    return sendSuccess(res, user, "user found", 200);
+  } catch (error: any) {
+    return sendError(res, error.message || "Something went wrong", 500, error);
   }
 };

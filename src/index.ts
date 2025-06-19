@@ -16,6 +16,7 @@ import feedbackRouter from "./routes/feedback.Routes";
 import AppFeedbackRouter from "./routes/Appfeedback.Routes";
 import ReportRouter from "./routes/report.Routes";
 import EarlyAccessForm from "./routes/EarlyAccessForm.Routes";
+import UserRoutes from "./routes/User.Routes";
 async function bootstrap() {
   await connectDB();
 
@@ -50,6 +51,7 @@ async function bootstrap() {
   app.use("/report", ReportRouter);
   app.use("/app-feedback", AppFeedbackRouter);
   app.use("/early-access-form", EarlyAccessForm);
+  app.use("/user", UserRoutes);
 
   app.get("/", (_req: Request, res: Response) => {
     res.send({ message: "Assume Chat API up and running!" });
