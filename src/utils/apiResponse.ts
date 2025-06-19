@@ -1,5 +1,5 @@
 // src/utils/response.ts
-import { Response } from 'express';
+import { Response } from "express";
 
 export interface ApiSuccess<T = any> {
   success: true;
@@ -25,7 +25,7 @@ export interface ApiError {
 export function sendSuccess<T>(
   res: Response,
   data: T,
-  message = 'Success',
+  message = "Success",
   statusCode = 200
 ): void {
   res.status(statusCode).json({
