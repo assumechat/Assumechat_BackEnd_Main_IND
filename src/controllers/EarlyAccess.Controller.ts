@@ -2,6 +2,7 @@ import { NextFunction, Request, RequestHandler, Response } from "express";
 import EarlyAccessFormModel from "../models/EarlyAccessForm.Model";
 import { sendError, sendSuccess } from "../utils/apiResponse";
 
+//check if the user already exists it returns a boolean
 async function checkEmail(email: string): Promise<boolean> {
   const user = await EarlyAccessFormModel.findOne({ email });
   if (!user) {
@@ -9,6 +10,7 @@ async function checkEmail(email: string): Promise<boolean> {
   }
   return true;
 }
+//all the iit email domains
 const IIT_EMAIL_DOMAINS = [
   "iitb.ac.in", // IIT Bombay
   "iitd.ac.in", // IIT Delhi
@@ -33,10 +35,12 @@ const IIT_EMAIL_DOMAINS = [
   "iitjammu.ac.in", // IIT Jammu
   "iitdh.ac.in", // IIT Dharwad
 ];
+//check if the email for early acess is iit email or not
 function isIITEmail(email: string): boolean {
   const domain = email.split("@")[1]?.toLowerCase();
   return IIT_EMAIL_DOMAINS.includes(domain);
 }
+//post early access form
 export const PostForm: RequestHandler<{ id: string }> = async (
   req,
   res,
@@ -76,6 +80,7 @@ export const PostForm: RequestHandler<{ id: string }> = async (
     return sendError(res, e.message || "Something went wrong", 500, e);
   }
 };
+//get all the forms submitted
 export const GetAllForms: RequestHandler<{ id: string }> = async (
   req,
   res,

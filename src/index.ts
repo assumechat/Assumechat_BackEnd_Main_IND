@@ -13,6 +13,7 @@ import { Server } from "socket.io";
 import { initializeQueueSocket } from "./sockets/queueSocket";
 import { initializeChatSocket } from "./sockets/chatSocket";
 import feedbackRouter from "./routes/feedback.Routes";
+import AppFeedbackRouter from "./routes/Appfeedback.Routes";
 import ReportRouter from "./routes/report.Routes";
 import EarlyAccessForm from "./routes/EarlyAccessForm.Routes";
 async function bootstrap() {
@@ -47,7 +48,9 @@ async function bootstrap() {
   app.use("/userProfile", userProfileRouter);
   app.use("/feedback", feedbackRouter);
   app.use("/report", ReportRouter);
+  app.use("/app-feedback", AppFeedbackRouter);
   app.use("/early-access-form", EarlyAccessForm);
+
   app.get("/", (_req: Request, res: Response) => {
     res.send({ message: "Assume Chat API up and running!" });
   });

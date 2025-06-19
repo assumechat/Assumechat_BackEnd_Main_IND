@@ -1,7 +1,7 @@
 import { RequestHandler } from "express";
 import { Types } from "mongoose";
 import validator from "validator";
-import Feedback from "../models/AppFeedback.Model";
+import AppFeedback from "../models/AppFeedback.Model";
 import { sendSuccess, sendError } from "../utils/apiResponse";
 
 const allowedTypes = ["bug", "feedback", "feature", "early_access"] as const;
@@ -46,16 +46,21 @@ export const createFeedback: RequestHandler = async (req, res, next) => {
       return sendError(res, "Description must be <= 1000 characters", 400);
     }
 
-    const fb = await Feedback.create({
+    const fb = await AppFeedback.create({
       type,
       email,
       title,
       description,
       metadata,
     });
-    return sendSuccess(res, fb, "Feedback submitted successfully", 201);
+    return sendSuccess(res, fb, "AppFeedback submitted successfully", 201);
   } catch (err: any) {
-    return sendError(res, err.message || "Failed to submit feedback", 500, err);
+    return sendError(
+      res,
+      err.message || "Failed to submit AppFeedback",
+      500,
+      err
+    );
   }
 };
 
@@ -85,12 +90,19 @@ export const getAllFeedback: RequestHandler = async (req, res, next) => {
       filter.status = status;
     }
 
-    const list = await Feedback.find(filter).sort({ createdAt: -1 }).limit(500);
-    return sendSuccess(res, list, "Feedback list retrieved successfully", 200);
+    const list = await AppFeedback.find(filter)
+      .sort({ createdAt: -1 })
+      .limit(500);
+    return sendSuccess(
+      res,
+      list,
+      "AppFeedback list retrieved successfully",
+      200
+    );
   } catch (err: any) {
     return sendError(
       res,
-      err.message || "Failed to retrieve feedback",
+      err.message || "Failed to retrieve AppFeedback",
       500,
       err
     );
@@ -108,16 +120,16 @@ export const getFeedbackById: RequestHandler<{ id: string }> = async (
       return sendError(res, "Invalid feedback ID", 400);
     }
 
-    const fb = await Feedback.findById(id);
+    const fb = await AppFeedback.findById(id);
     if (!fb) {
-      return sendError(res, "Feedback not found", 404);
+      return sendError(res, "AppFeedback not found", 404);
     }
 
-    return sendSuccess(res, fb, "Feedback retrieved successfully", 200);
+    return sendSuccess(res, fb, "AppFeedback retrieved successfully", 200);
   } catch (err: any) {
     return sendError(
       res,
-      err.message || "Failed to retrieve feedback",
+      err.message || "Failed to retrieve AppFeedback",
       500,
       err
     );
@@ -147,7 +159,11 @@ export const updateFeedbackStatus: RequestHandler<{ id: string }> = async (
       );
     }
 
-    const fb = await Feedback.findByIdAndUpdate(id, { status }, { new: true });
+    const fb = await AppFeedback.findByIdAndUpdate(
+      id,
+      { status },
+      { new: true }
+    );
     if (!fb) {
       return sendError(res, "Feedback not found", 404);
     }
@@ -175,7 +191,7 @@ export const deleteFeedback: RequestHandler<{ id: string }> = async (
       return sendError(res, "Invalid feedback ID", 400);
     }
 
-    const fb = await Feedback.findByIdAndDelete(id);
+    const fb = await AppFeedback.findByIdAndDelete(id);
     if (!fb) {
       return sendError(res, "Feedback not found", 404);
     }
