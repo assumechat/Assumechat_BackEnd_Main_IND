@@ -9,7 +9,6 @@ const AppFeedbackSchema = new mongoose.Schema(
         "feedback",
         "early_access",
         "enhancement",
-        "early_access",
         "feature",
         "other",
       ],

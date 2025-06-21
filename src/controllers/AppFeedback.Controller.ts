@@ -4,7 +4,15 @@ import validator from "validator";
 import AppFeedback from "../models/AppFeedback.Model";
 import { sendSuccess, sendError } from "../utils/apiResponse";
 
-const allowedTypes = ["bug", "feedback", "feature", "early_access"] as const;
+const allowedTypes = [
+  "bug",
+  "feedback",
+  "feature",
+  "early_access",
+  "enhancement",
+  "feature",
+  "other",
+] as const;
 const allowedStatuses = ["pending", "reviewed", "resolved"] as const;
 
 export const createFeedback: RequestHandler = async (req, res, next) => {
