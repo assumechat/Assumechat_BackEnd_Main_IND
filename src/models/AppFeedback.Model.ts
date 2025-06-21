@@ -4,7 +4,15 @@ const AppFeedbackSchema = new mongoose.Schema(
   {
     type: {
       type: String,
-      enum: ["bug", "feedback", "feature", "early_access"],
+      enum: [
+        "bug",
+        "feedback",
+        "early_access",
+        "enhancement",
+        "early_access",
+        "feature",
+        "other",
+      ],
       required: true,
     },
     email: {
@@ -44,4 +52,5 @@ const AppFeedbackSchema = new mongoose.Schema(
   }
 );
 
-export default mongoose.models.AppFeedback || mongoose.model("AppFeedback", AppFeedbackSchema);
+export default mongoose.models.AppFeedback ||
+  mongoose.model("AppFeedback", AppFeedbackSchema);
