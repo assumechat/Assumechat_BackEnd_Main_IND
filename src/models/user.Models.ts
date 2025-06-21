@@ -13,7 +13,8 @@ const UserSchema = new Schema<IUser>(
         premiumExpiry: { type: Date },  // Optional: if you want time-bound subscriptions
         premiumTier: { type: String, enum: ['basic', 'plus', 'gold'], default: 'basic' },
         dailySkips: { type: Number, default: 0 },
-        lastSkipTimestamp: { type: Date, default: null }
+        lastSkipTimestamp: { type: Date, default: null },
+        activeSession: { type: String, default: null },
     },
     { timestamps: true }
 );

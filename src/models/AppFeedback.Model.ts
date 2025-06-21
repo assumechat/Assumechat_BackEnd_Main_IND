@@ -9,7 +9,7 @@ const AppFeedbackSchema = new mongoose.Schema(
     },
     email: {
       type: String,
-      required: false, // optional for anonymous feedback
+      required: false,
       trim: true,
       lowercase: true,
     },
@@ -44,5 +44,4 @@ const AppFeedbackSchema = new mongoose.Schema(
   }
 );
 
-export default mongoose.models.AppFeedback ||
-  mongoose.model("AppFeedback", AppFeedbackSchema);
+export default mongoose.models.AppFeedback || mongoose.model("AppFeedback", AppFeedbackSchema);

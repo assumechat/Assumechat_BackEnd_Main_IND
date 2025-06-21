@@ -16,5 +16,6 @@ export interface IUser extends Document {
   isPremium: Boolean,
   premiumExpiry: Date;
   premiumTier: PremiumTier;
+  activeSession: string | null;
   updatedAt: Date;
 }
