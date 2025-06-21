@@ -109,7 +109,7 @@ export const getUserByEmail: RequestHandler<{ id: string }> = async (
     const user = await EarlyAccessFormModel.findOne({ email: email });
 
     if (!user) {
-      return sendError(res, "user not found", 404);
+      return sendSuccess(res, false, "user not found", 200);
     }
     return sendSuccess(res, user, "user found", 200);
   } catch (error: any) {
