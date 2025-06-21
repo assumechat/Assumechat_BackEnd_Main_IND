@@ -107,6 +107,7 @@ const signup: RequestHandler = async (req, res, next) => {
           dailySkips: userWithoutPassword.dailySkips,
           lastSkipTimestamp: userWithoutPassword.lastSkipTimestamp,
         },
+        accessToken,
       },
       "Signin Successful",
       201
@@ -139,17 +140,17 @@ const login: RequestHandler = async (req, res, next) => {
       return sendError(res, "Invalid credentials Email Not Found", 404);
 
     const match = await bcrypt.compare(password, user.password);
-    if (!match) return sendError(res, 'Invalid credentials Wrong Password', 401);
+    if (!match)
+      return sendError(res, "Invalid credentials Wrong Password", 401);
 
     // NEW: reject if already logged in elsewhere
     if (user.activeSession) {
       return sendError(
         res,
-        'You are already logged in on another device. Log out there first.',
+        "You are already logged in on another device. Log out there first.",
         409
       );
     }
-
 
     const payload = {
       userId: (user._id as Types.ObjectId).toString(),
@@ -179,9 +180,9 @@ const login: RequestHandler = async (req, res, next) => {
           premiumExpiry: safeUser.premiumExpiry,
           dailySkips: safeUser.dailySkips,
           lastSkipTimestamp: safeUser.lastSkipTimestamp,
-        }
+        },
       },
-      'Login successful',
+      "Login successful",
       200
     );
   } catch (err: any) {
@@ -192,19 +193,18 @@ const login: RequestHandler = async (req, res, next) => {
 // 2. Refresh access token
 const refreshTokenHandler: RequestHandler = async (req, res) => {
   const { refreshToken } = req.body;
-  if (!refreshToken)
-    return sendError(res, 'Refresh token required', 400);
+  if (!refreshToken) return sendError(res, "Refresh token required", 400);
 
   let payload;
   try {
     payload = verifyRefreshToken(refreshToken);
   } catch {
-    return sendError(res, 'Invalid refresh token', 403);
+    return sendError(res, "Invalid refresh token", 403);
   }
 
   const user = await UserModel.findById(payload.userId);
   if (!user || user.activeSession !== refreshToken) {
-    return sendError(res, 'Session expired or invalid', 403);
+    return sendError(res, "Session expired or invalid", 403);
   }
 
   // Rotate tokens
@@ -238,9 +238,9 @@ const refreshTokenHandler: RequestHandler = async (req, res) => {
         premiumExpiry: safeUser.premiumExpiry,
         dailySkips: safeUser.dailySkips,
         lastSkipTimestamp: safeUser.lastSkipTimestamp,
-      }
+      },
     },
-    'Token refreshed',
+    "Token refreshed",
     200
   );
 };
@@ -248,26 +248,24 @@ const refreshTokenHandler: RequestHandler = async (req, res) => {
 // 3. Logout route
 const logout: RequestHandler = async (req, res) => {
   const { refreshToken } = req.body;
-  if (!refreshToken)
-    return sendError(res, 'Refresh token required', 400);
+  if (!refreshToken) return sendError(res, "Refresh token required", 400);
 
   let payload;
   try {
     payload = verifyRefreshToken(refreshToken);
   } catch {
-    return sendError(res, 'Invalid refresh token', 403);
+    return sendError(res, "Invalid refresh token", 403);
   }
 
   const user = await UserModel.findById(payload.userId);
-  if (!user)
-    return sendError(res, 'Invalid refresh token', 403);
+  if (!user) return sendError(res, "Invalid refresh token", 403);
 
   // NEW: remove session
   user.refreshTokens = [];
   user.activeSession = null;
   await user.save();
 
-  return sendSuccess(res, null, 'Logged out successfully', 200);
+  return sendSuccess(res, null, "Logged out successfully", 200);
 };
 
 //4.Email varification
