@@ -1,7 +1,7 @@
 import { NextFunction, Request, RequestHandler, Response } from "express";
 import EarlyAccessFormModel from "../models/EarlyAccessForm.Model";
 import { sendError, sendSuccess } from "../utils/apiResponse";
-import { IIT_EMAIL_DOMAINS, IIT_EMAIL_MAP } from "../common/iit_email.common";
+import { getIITNameFromEmail, IIT_EMAIL_DOMAINS, IIT_EMAIL_MAP } from "../common/iit_email.common";
 
 //check if the user already exists it returns a boolean
 async function checkEmail(email: string): Promise<boolean> {
@@ -13,14 +13,14 @@ async function checkEmail(email: string): Promise<boolean> {
 }
 //all the iit email domains
 
-//check if the email for early acess is iit email or not
 function isIITEmail(email: string): boolean {
-  const domain = email.split("@")[1]?.toLowerCase();
-  return IIT_EMAIL_DOMAINS.includes(domain);
+  const normalizedEmail = email.trim().toLowerCase();
+  return getIITNameFromEmail(normalizedEmail) !== null;
 }
 
 function whichIIT(email: string): string | null {
-  const domain = email.split("@")[1]?.toLowerCase();
+  const normalizedEmail = email.trim().toLowerCase();
+  const domain = normalizedEmail.split("@")[1];
 
   return domain && IIT_EMAIL_MAP[domain] ? IIT_EMAIL_MAP[domain] : null;
 }
@@ -56,11 +56,10 @@ export const PostForm: RequestHandler<{ id: string }> = async (
         401
       );
     }
-    const whichiit = whichIIT(email);
+
     const newUser = await EarlyAccessFormModel.create({
       email,
       name,
-      whichIIT: whichiit,
     });
     return sendSuccess(res, newUser, "Form submitted successfully", 200);
   } catch (e: any) {

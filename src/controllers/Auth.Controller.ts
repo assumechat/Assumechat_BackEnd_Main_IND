@@ -9,11 +9,11 @@ import {
   signRefreshToken,
   verifyRefreshToken,
 } from "../utils/jwt";
-import { IIT_EMAIL_DOMAINS } from "../common/iit_email.common";
+import { getIITNameFromEmail } from "../common/iit_email.common";
 
 function isIITEmail(email: string): boolean {
-  const domain = email.split("@")[1]?.toLowerCase();
-  return IIT_EMAIL_DOMAINS.includes(domain);
+  const normalizedEmail = email.trim().toLowerCase();
+  return getIITNameFromEmail(normalizedEmail) !== null;
 }
 
 // 1. Request OTP
@@ -123,7 +123,7 @@ const login: RequestHandler = async (req, res, next) => {
   const { email, password } = req.body;
   try {
     if (!email || !password) {
-      sendError(res, "Pls Provide Email Or Password", 401);
+      return sendError(res, "Pls Provide Email Or Password", 401);
     }
     if (!isIITEmail(email)) {
       return sendError(

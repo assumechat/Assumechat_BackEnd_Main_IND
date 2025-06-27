@@ -13,11 +13,6 @@ const EarlyAccessFormSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
-    whichIIT: {
-      type: String,
-      required: true,
-      trim: true,
-    },
     claimed: {
       type: Boolean,
       default: false,
